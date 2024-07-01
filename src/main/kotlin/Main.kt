@@ -12,6 +12,19 @@ fun main() {
         val split = i.split("|")
         dictionary.add(Word(split[0], split[1], split[2].toIntOrNull() ?: 0))
     }
-    dictionary.forEach { println("${it.original} - ${it.translate}. Правильных ответов - ${it.correctAnswersCount}") }
+
+    while (true){
+        println("Меню: \n" +
+                "1 – Учить слова\n" +
+                "2 – Статистика\n" +
+                "0 – Выход")
+        val answer = readln().toInt()
+        when(answer){
+            1 -> println("Нажата кнопка 1")
+            2 -> println("Нажата кнопка 2")
+            0 -> break
+            else -> println("Выберете корректный пункт меню")
+        }
+    }
 }
 

@@ -22,7 +22,27 @@ fun main() {
         )
         val answer = readln().toInt()
         when (answer) {
-            1 -> println("Нажата кнопка 1")
+            1 -> {
+                var cycle = true
+                while (cycle) {
+                    val listUnlearnedWords = dictionary.filter { it.correctAnswersCount < 3 }
+                    if (listUnlearnedWords.isEmpty()) {
+                        println("Все слова выучены")
+                        break
+                    } else {
+                        val answerOptions = listUnlearnedWords.shuffled().take(4)
+                        println("Переведите слово: ${answerOptions.random().translate}")
+                        println("Варианты ответов:")
+                        answerOptions.forEach { println(" - ${it.original}") }
+                        // Проверка правильности ответа
+                        println("Для выхода в главное меню нажмите - 0")
+                        println("Что бы продолжить нажмите - ENTER")
+                        val exit = readln()
+                        if (exit == "0") cycle = false
+                    }
+                }
+            }
+
             2 -> {
                 val learnedWordsListSize = dictionary.filter { it.correctAnswersCount >= 3 }.size
                 println(
@@ -30,6 +50,7 @@ fun main() {
                             "слов | ${(learnedWordsListSize / dictionary.size.toDouble() * 100).toInt()}%"
                 )
             }
+
             0 -> break
             else -> println("Выберете корректный пункт меню")
         }

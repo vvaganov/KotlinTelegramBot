@@ -1,6 +1,6 @@
-hello|привет|3
+hello|привет|1
 dog|собака|1
-cat|кошка|2
-table|стол|0
-answer|ответ|2
-question|вопрос|2
+cat|кошка|1
+table|стол|2
+answer|ответ|1
+question|вопрос|1

@@ -2,6 +2,8 @@ package org.example
 
 import java.io.File
 
+const val ALL_WORDS_LEARNED = "Все слова выучены"
+
 fun main() {
 
     val dictionary: MutableList<Word> = mutableListOf()
@@ -23,22 +25,17 @@ fun main() {
         val answer = readln().toInt()
         when (answer) {
             1 -> {
-                var cycle = true
-                while (cycle) {
+                while (true) {
                     val listUnlearnedWords = dictionary.filter { it.correctAnswersCount < 3 }
                     if (listUnlearnedWords.isEmpty()) {
-                        println("Все слова выучены")
+                        println(ALL_WORDS_LEARNED)
                         break
                     } else {
                         val answerOptions = listUnlearnedWords.shuffled().take(4)
                         println("Переведите слово: ${answerOptions.random().translate}")
                         println("Варианты ответов:")
                         answerOptions.forEach { println(" - ${it.original}") }
-                        // Проверка правильности ответа
-                        println("Для выхода в главное меню нажмите - 0")
-                        println("Что бы продолжить нажмите - ENTER")
-                        val exit = readln()
-                        if (exit == "0") cycle = false
+                        break
                     }
                 }
             }

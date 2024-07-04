@@ -2,6 +2,9 @@ package org.example
 
 import java.io.File
 
+const val NUMBER_CORRECT_ANSWERS = 3
+const val NUMBER_POSSIBLE_ANSWERS = 4
+
 fun main() {
 
     val dictionary: MutableList<Word> = mutableListOf()
@@ -22,14 +25,30 @@ fun main() {
         )
         val answer = readln().toInt()
         when (answer) {
-            1 -> println("Нажата кнопка 1")
+            1 -> {
+                while (true) {
+                    val listUnlearnedWords = dictionary.filter { it.correctAnswersCount < NUMBER_CORRECT_ANSWERS }
+                    if (listUnlearnedWords.isEmpty()) {
+                        println("Все слова выучены")
+                        break
+                    } else {
+                        val answerOptions = listUnlearnedWords.shuffled().take(NUMBER_POSSIBLE_ANSWERS)
+                        println("Переведите слово: ${answerOptions.random().translate}")
+                        println("Варианты ответов:")
+                        answerOptions.forEach { println(" - ${it.original}") }
+                        break
+                    }
+                }
+            }
+
             2 -> {
-                val learnedWordsListSize = dictionary.filter { it.correctAnswersCount >= 3 }.size
+                val learnedWordsListSize = dictionary.filter { it.correctAnswersCount >= NUMBER_CORRECT_ANSWERS }.size
                 println(
                     "Выучено $learnedWordsListSize из ${dictionary.size} " +
                             "слов | ${(learnedWordsListSize / dictionary.size.toDouble() * 100).toInt()}%"
                 )
             }
+
             0 -> break
             else -> println("Выберете корректный пункт меню")
         }

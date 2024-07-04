@@ -33,10 +33,25 @@ fun main() {
                         break
                     } else {
                         val answerOptions = listUnlearnedWords.shuffled().take(NUMBER_POSSIBLE_ANSWERS)
-                        println("Переведите слово: ${answerOptions.random().translate}")
+                        val question = answerOptions.random()
+                        println("Переведите слово: ${question.translate}")
                         println("Варианты ответов:")
-                        answerOptions.forEach { println(" - ${it.original}") }
-                        break
+                        answerOptions.forEachIndexed { index, word -> println("${index + 1} - ${word.original}") }
+                        println("(0) - ВЫХОД")
+                        println("Выберете правильный ответ")
+                        val option = readln().toInt()
+                        if (option == 0) {
+                            break
+                        } else if ((option - 1) == answerOptions.indexOf(question)) {
+                            println("Ответ верный:)")
+                            println("________________")
+                            question.correctAnswersCount++
+                            saveDictionary(dictionary, wordFile)
+
+                        } else {
+                            println("Ответ не верный:(")
+                            println("________________")
+                        }
                     }
                 }
             }
@@ -53,4 +68,9 @@ fun main() {
             else -> println("Выберете корректный пункт меню")
         }
     }
+}
+
+fun saveDictionary(list: MutableList<Word>, file: File) {
+    val newString = list.map { "${it.original}|${it.translate}|${it.correctAnswersCount}\n" }
+    file.writeText(newString.joinToString(""))
 }

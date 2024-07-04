@@ -2,7 +2,8 @@ package org.example
 
 import java.io.File
 
-const val ALL_WORDS_LEARNED = "Все слова выучены"
+const val NUMBER_CORRECT_ANSWERS = 3
+const val NUMBER_POSSIBLE_ANSWERS = 4
 
 fun main() {
 
@@ -26,12 +27,12 @@ fun main() {
         when (answer) {
             1 -> {
                 while (true) {
-                    val listUnlearnedWords = dictionary.filter { it.correctAnswersCount < 3 }
+                    val listUnlearnedWords = dictionary.filter { it.correctAnswersCount < NUMBER_CORRECT_ANSWERS }
                     if (listUnlearnedWords.isEmpty()) {
-                        println(ALL_WORDS_LEARNED)
+                        println("Все слова выучены")
                         break
                     } else {
-                        val answerOptions = listUnlearnedWords.shuffled().take(4)
+                        val answerOptions = listUnlearnedWords.shuffled().take(NUMBER_POSSIBLE_ANSWERS)
                         println("Переведите слово: ${answerOptions.random().translate}")
                         println("Варианты ответов:")
                         answerOptions.forEach { println(" - ${it.original}") }
@@ -41,7 +42,7 @@ fun main() {
             }
 
             2 -> {
-                val learnedWordsListSize = dictionary.filter { it.correctAnswersCount >= 3 }.size
+                val learnedWordsListSize = dictionary.filter { it.correctAnswersCount >= NUMBER_CORRECT_ANSWERS }.size
                 println(
                     "Выучено $learnedWordsListSize из ${dictionary.size} " +
                             "слов | ${(learnedWordsListSize / dictionary.size.toDouble() * 100).toInt()}%"

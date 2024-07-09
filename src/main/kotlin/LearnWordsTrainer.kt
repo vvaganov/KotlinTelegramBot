@@ -24,7 +24,7 @@ class LearnWordsTrainer(
 
 
     fun getStatistic(): Statistics {
-        val learned = dictionary.filter { it.correctAnswersCount >= 3 }.size
+        val learned = dictionary.filter { it.correctAnswersCount >= learnedAnswerCount}.size
         val total = dictionary.size
         val percent = learned * 100 / total
         return Statistics(learned, total, percent)
@@ -62,7 +62,7 @@ class LearnWordsTrainer(
         try {
             val dictionary = mutableListOf<Word>()
             val wordFile = File("words.txt")
-            wordFile.readLines().forEach {
+            wordFile.readLines().map {
                 val split = it.split("|")
                 dictionary.add(Word(split[0], split[1], split[2].toIntOrNull() ?: 0))
             }

@@ -1,8 +1,5 @@
 package org.example
 
-const val NUMBER_CORRECT_ANSWERS = 3
-const val NUMBER_POSSIBLE_ANSWERS = 4
-
 fun Question.asConsoleString(): String {
     val variants = this.variant.mapIndexed { index, word -> "${index + 1} - ${word.translate}" }.joinToString("\n")
     return this.correctAnswer.original + "\n" + variants + "\n" + "0 - Выйти в меню"
@@ -10,7 +7,13 @@ fun Question.asConsoleString(): String {
 
 fun main() {
 
-    val trainer = LearnWordsTrainer()
+    val trainer =
+        try {
+            LearnWordsTrainer(3, 4)
+        } catch (e: Exception) {
+            println("Не возможно загрузить словарь")
+            return
+        }
 
     while (true) {
         println("Меню:\n1 – Учить слова\n2 – Статистика\n0 – Выход")
@@ -27,7 +30,7 @@ fun main() {
                         if (trainer.checkAnswer(userAnswerInput?.minus(1))) {
                             println("Правильно\n")
                         } else {
-                            println("Не правильный ответ. ${question.correctAnswer.original} - ${question.correctAnswer.translate}\n")
+                            println("Не правильно - ${question.correctAnswer.original} это ${question.correctAnswer.translate}\n")
                         }
                         if (userAnswerInput == 0) break
                     }
@@ -40,7 +43,7 @@ fun main() {
             }
 
             0 -> break
-            else -> println("Выберете корректный пункт меню")
+            else -> println("Выберете 1, 2 или 0")
         }
     }
 }

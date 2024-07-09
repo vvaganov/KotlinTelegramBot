@@ -24,7 +24,7 @@ class LearnWordsTrainer(
 
 
     fun getStatistic(): Statistics {
-        val learned = dictionary.filter { it.correctAnswersCount >= learnedAnswerCount}.size
+        val learned = dictionary.filter { it.correctAnswersCount >= learnedAnswerCount }.size
         val total = dictionary.size
         val percent = learned * 100 / total
         return Statistics(learned, total, percent)
@@ -59,16 +59,14 @@ class LearnWordsTrainer(
     }
 
     private fun loadDictionary(): List<Word> {
-        try {
-            val dictionary = mutableListOf<Word>()
-            val wordFile = File("words.txt")
-            wordFile.readLines().map {
-                val split = it.split("|")
-                dictionary.add(Word(split[0], split[1], split[2].toIntOrNull() ?: 0))
+        val wordFile = File("words.txt")
+        return wordFile.readLines().mapNotNull {
+            val split = it.split("|")
+            if (split.size != 3) {
+                null
+            } else {
+                Word(split[0], split[1], split[2].toIntOrNull() ?: 0)
             }
-            return dictionary
-        } catch (e: IndexOutOfBoundsException) {
-            throw IllegalStateException("Не корректный файл")
         }
     }
 

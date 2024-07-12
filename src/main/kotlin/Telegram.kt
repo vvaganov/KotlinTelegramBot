@@ -13,13 +13,13 @@ fun main(args: Array<String>) {
         println(updates)
 
         val updateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
-        val chatId: Regex = "\"chat\":\\{\"id\":(\\d+)".toRegex()
+        val chatIdRegex: Regex = "\"chat\":\\{\"id\":(\\d+)".toRegex()
         val messageText: Regex = "\"text\":\"(.+?)\"".toRegex()
 
         val valueId = updateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull() ?: continue
         updateId = valueId + 1
         println(valueId)
-        val valueChatId = chatId.find(updates)?.groups?.get(1)?.value?.toInt()
+        val valueChatId = chatIdRegex.find(updates)?.groups?.get(1)?.value?.toInt()
         println(valueChatId)
         val message = messageText.find(updates)?.groups?.get(1)?.value
         println(message)

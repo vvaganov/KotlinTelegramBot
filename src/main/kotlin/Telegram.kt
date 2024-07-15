@@ -4,16 +4,25 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 fun main(args: Array<String>) {
-
     val botToken = args[0]
-    val urlGetMe = "https://api.telegram.org/bot$botToken/getMe"
-    val urlGetUpdates = "https://api.telegram.org/bot$botToken/getUpdates"
+    var updateId = 0
 
-    val client: HttpClient = HttpClient.newBuilder().build()
-    var request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetMe)).build()
-    var response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
-    println("getMe - ${response.body()}")
-    request = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
-    response = client.send(request, HttpResponse.BodyHandlers.ofString())
-    println("getUpdates - ${response.body()}")
+    while (true) {
+        Thread.sleep(2000)
+        val updates = getUpdate(botToken, updateId)
+        val startUpdateId = updates.lastIndexOf("update_id")
+        val endUpdateId = updates.lastIndexOf(",\n\"message\"")
+        if (startUpdateId == -1 || endUpdateId == -1) continue
+        val updateIdString = updates.substring(startUpdateId + 11, endUpdateId)
+        updateId = updateIdString.toInt() + 1
+        println(updates)
+    }
 }
+
+fun getUpdate(botToken: String, updateId: Int): String {
+    val urlGetUpdates = "https://api.telegram.org/bot$botToken/getUpdates?offset=$updateId"
+    val client: HttpClient = HttpClient.newBuilder().build()
+    val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
+    val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
+    return response.body()
+    }

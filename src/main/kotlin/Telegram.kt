@@ -6,6 +6,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
+const val LEARN_WORD_BUTTON = "learn_words_clicked"
+const val STATISTICS_BUTTON = "statistic_clicked"
+const val EXIT_BUTTON = "exit_clicked"
+
 fun main(args: Array<String>) {
     val botToken = args[0]
     var updateId = 0
@@ -73,15 +77,15 @@ fun sendMenu(botToken: String, chatId: Int): String {
             [
                 {
                     "text": "Изучать слова",
-                    "callback_data": "learn_word_clicked"
+                    "callback_data": "$LEARN_WORD_BUTTON"
                 },
                 {
                     "text": "Статистика",
-                    "callback_data": "statistic_clicked"
+                    "callback_data": "$STATISTICS_BUTTON"
                 },
                 {
                     "text": "Выход",
-                    "callback_data": "exit_clicked"
+                    "callback_data": "$EXIT_BUTTON"
                 }
             ]
         ]

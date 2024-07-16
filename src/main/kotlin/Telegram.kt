@@ -10,12 +10,18 @@ fun main(args: Array<String>) {
     while (true) {
         Thread.sleep(2000)
         val updates = getUpdate(botToken, updateId)
-        val startUpdateId = updates.lastIndexOf("update_id")
-        val endUpdateId = updates.lastIndexOf(",\n\"message\"")
-        if (startUpdateId == -1 || endUpdateId == -1) continue
-        val updateIdString = updates.substring(startUpdateId + 11, endUpdateId)
-        updateId = updateIdString.toInt() + 1
-        println(updates)
+
+        val updateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
+        val chatIdRegex: Regex = "\"chat\":\\{\"id\":(\\d+)".toRegex()
+        val messageText: Regex = "\"text\":\"(.+?)\"".toRegex()
+
+        val valueId = updateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull() ?: continue
+        updateId = valueId + 1
+        println(updateId)
+        val chatId = chatIdRegex.find(updates)?.groups?.get(1)?.value?.toInt()
+        println(chatId)
+        val message = messageText.find(updates)?.groups?.get(1)?.value
+        println(message)
     }
 }
 

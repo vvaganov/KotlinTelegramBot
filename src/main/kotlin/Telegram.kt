@@ -15,6 +15,7 @@ fun main(args: Array<String>) {
     val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
 
     val trainer = LearnWordsTrainer()
+    val statistic = trainer.getStatistic()
 
     while (true) {
         Thread.sleep(2000)
@@ -35,7 +36,11 @@ fun main(args: Array<String>) {
             sendMenu(botToken, chatId)
         }
         if (data?.lowercase() == "statistic_clicked" && chatId != null) {
-            sendMessage(botToken, chatId, "Выучено 10 из 100 слов!!!")
+            sendMessage(
+                botToken,
+                chatId,
+                "Выучено ${statistic.learned} из ${statistic.total} слов || ${statistic.percent}%"
+            )
         }
 
     }

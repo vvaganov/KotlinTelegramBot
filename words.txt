@@ -1,10 +1,10 @@
-hello|привет|0
+hello|привет|1
 dog|собака|0
 cat|кошка|0
 table|стол|0
 answer|ответ|0
 question|вопрос|0
-red|красный|1
+red|красный|2
 chair|стул|0
 water|вода|0
-home|дом|0
+home|дом|1

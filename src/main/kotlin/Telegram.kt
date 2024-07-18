@@ -26,19 +26,19 @@ fun main(args: Array<String>) {
         println(updates)
         val valueId = updateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull() ?: continue
         updateId = valueId + 1
-        val chatId = chatIdRegex.find(updates)?.groups?.get(1)?.value?.toInt()
+        val chatId = chatIdRegex.find(updates)?.groups?.get(1)?.value?.toInt() ?: break
         val message = messageRegex.find(updates)?.groups?.get(1)?.value
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
 
-        if (message?.lowercase() == "hello" && chatId != null) {
+        if (message?.lowercase() == "hello") {
             sendMessage(botToken, chatId, "Hello")
         }
 
-        if (message?.lowercase() == "/start" && chatId != null) {
+        if (message?.lowercase() == "/start" ) {
             sendMenu(botToken, chatId)
         }
-        if (data?.lowercase() == "statistic_clicked" && chatId != null) {
+        if (data?.lowercase() == "statistic_clicked") {
             sendMessage(
                 botToken,
                 chatId,

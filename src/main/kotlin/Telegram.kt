@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets
 
 const val LEARN_WORD_BUTTON = "learn_words_clicked"
 const val STATISTICS_BUTTON = "statistic_clicked"
-const val EXIT_BUTTON = "exit_clicked"
 
 fun main(args: Array<String>) {
     val botToken = args[0]
@@ -46,7 +45,6 @@ fun main(args: Array<String>) {
                 "Выучено ${statistic.learned} из ${statistic.total} слов || ${statistic.percent}%"
             )
         }
-
     }
 }
 
@@ -82,10 +80,6 @@ fun sendMenu(botToken: String, chatId: Int): String {
                 {
                     "text": "Статистика",
                     "callback_data": "$STATISTICS_BUTTON"
-                },
-                {
-                    "text": "Выход",
-                    "callback_data": "$EXIT_BUTTON"
                 }
             ]
         ]

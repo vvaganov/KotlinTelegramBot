@@ -6,6 +6,9 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
+const val LEARN_WORD_BUTTON = "learn_words_clicked"
+const val STATISTICS_BUTTON = "statistic_clicked"
+
 fun main(args: Array<String>) {
     val botToken = args[0]
     var updateId = 0
@@ -15,6 +18,7 @@ fun main(args: Array<String>) {
     val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
 
     val trainer = LearnWordsTrainer()
+    val statistic = trainer.getStatistic()
 
     while (true) {
         Thread.sleep(2000)
@@ -22,22 +26,25 @@ fun main(args: Array<String>) {
         println(updates)
         val valueId = updateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull() ?: continue
         updateId = valueId + 1
-        val chatId = chatIdRegex.find(updates)?.groups?.get(1)?.value?.toInt()
+        val chatId = chatIdRegex.find(updates)?.groups?.get(1)?.value?.toInt() ?: break
         val message = messageRegex.find(updates)?.groups?.get(1)?.value
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
 
-        if (message?.lowercase() == "hello" && chatId != null) {
+        if (message?.lowercase() == "hello") {
             sendMessage(botToken, chatId, "Hello")
         }
 
-        if (message?.lowercase() == "/start" && chatId != null) {
+        if (message?.lowercase() == "/start" ) {
             sendMenu(botToken, chatId)
         }
-        if (data?.lowercase() == "statistic_clicked" && chatId != null) {
-            sendMessage(botToken, chatId, "Выучено 10 из 100 слов!!!")
+        if (data?.lowercase() == "statistic_clicked") {
+            sendMessage(
+                botToken,
+                chatId,
+                "Выучено ${statistic.learned} из ${statistic.total} слов || ${statistic.percent}%"
+            )
         }
-
     }
 }
 
@@ -68,15 +75,11 @@ fun sendMenu(botToken: String, chatId: Int): String {
             [
                 {
                     "text": "Изучать слова",
-                    "callback_data": "learn_word_clicked"
+                    "callback_data": "$LEARN_WORD_BUTTON"
                 },
                 {
                     "text": "Статистика",
-                    "callback_data": "statistic_clicked"
-                },
-                {
-                    "text": "Выход",
-                    "callback_data": "exit_clicked"
+                    "callback_data": "$STATISTICS_BUTTON"
                 }
             ]
         ]

@@ -24,7 +24,6 @@ fun main(args: Array<String>) {
 
     while (true) {
         Thread.sleep(2000)
-        val statistic = trainer.getStatistic()
         val updates = getUpdate(botToken, updateId)
         println(updates)
         val valueId = updateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull() ?: continue
@@ -42,6 +41,7 @@ fun main(args: Array<String>) {
         }
 
         if (data?.lowercase() == "statistic_clicked") {
+            val statistic = trainer.getStatistic()
             sendMessage(
                 botToken,
                 chatId,

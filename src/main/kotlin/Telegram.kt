@@ -21,11 +21,10 @@ fun main(args: Array<String>) {
     val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
 
     val trainer = LearnWordsTrainer()
-    val statistic = trainer.getStatistic()
-
 
     while (true) {
         Thread.sleep(2000)
+        val statistic = trainer.getStatistic()
         val updates = getUpdate(botToken, updateId)
         println(updates)
         val valueId = updateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull() ?: continue

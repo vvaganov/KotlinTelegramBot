@@ -52,7 +52,26 @@ fun main(args: Array<String>) {
         if (data?.lowercase() == LEARN_WORD_BUTTON) {
             checkNextQuestionAndSend(trainer, botToken, chatId)
         }
+
+        if (startsWith(data)) {
+            val index = data?.substringAfter("_")?.toInt()
+            if (trainer.checkAnswer(index)) {
+                sendMessage(botToken, chatId, "Правильно")
+                checkNextQuestionAndSend(trainer, botToken, chatId)
+            } else {
+                sendMessage(
+                    botToken,
+                    chatId,
+                    "Не правильно! Правильный ответ - ${(trainer.getQuestion()?.correctAnswer?.translate)?.replaceFirstChar { it.uppercase() }}"
+                )
+                checkNextQuestionAndSend(trainer, botToken, chatId)
+            }
+        }
     }
+}
+
+fun startsWith(data: String?): Boolean {
+    return data?.contains(CALLBACK_DATA_ANSWER_PREFIX) ?: false
 }
 
 fun checkNextQuestionAndSend(trainer: LearnWordsTrainer, botToken: String, chatId: Int) {

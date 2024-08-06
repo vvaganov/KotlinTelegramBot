@@ -1,5 +1,8 @@
 package org.example
 
+import LearnWordsTrainer
+import Question
+
 fun Question.asConsoleString(): String {
     val variants = this.variant.mapIndexed { index, word -> "${index + 1} - ${word.translate}" }.joinToString("\n")
     return this.correctAnswer.original + "\n" + variants + "\n" + "0 - Выйти в меню"

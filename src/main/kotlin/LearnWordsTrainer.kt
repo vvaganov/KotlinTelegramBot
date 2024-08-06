@@ -1,7 +1,8 @@
-package org.example
-
+import kotlinx.serialization.Serializable
 import java.io.File
 
+
+@Serializable
 data class Word(
     val original: String,
     val translate: String,
@@ -24,13 +25,10 @@ class LearnWordsTrainer(
     private val countOfQuestionWord: Int = 4
 ) {
 
-
     private val dictionary = loadDictionary()
     private var question: Question? = null
 
-
     fun getQuestion() = question
-
 
     fun getStatistic(): Statistics {
         val learned = dictionary.filter { it.correctAnswersCount >= learnedAnswerCount }.size

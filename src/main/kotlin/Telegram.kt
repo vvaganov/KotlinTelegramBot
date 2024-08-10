@@ -13,8 +13,8 @@ import java.nio.charset.StandardCharsets
 const val LEARN_WORD_BUTTON = "learn_words_clicked"
 const val STATISTICS_BUTTON = "statistic_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
+const val BASE_URL =  "https://api.telegram.org/bot"
 
-const val URL_GET_UPDATE = "https://api.telegram.org/bot\$botToken/getUpdates?offset=\$updateId"
 
 @Serializable
 data class Update(
@@ -86,52 +86,59 @@ fun main(args: Array<String>) {
     val trainer = LearnWordsTrainer()
     val httpClient = TelegramBotService(botToken)
 
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
+
     while (true) {
         Thread.sleep(2000)
-        val responseString = httpClient.getClient(lastUpdateId)
-        val firstUpdate = httpClient.getUpdateDataClass(responseString)
+        val getUpdateUrl = "$BASE_URL$botToken/getUpdates?offset=$lastUpdateId"
+        val responseString = httpClient.getClient(getUpdateUrl)
+        val firstUpdate = httpClient.getUpdateDataClass(responseString, json)
         lastUpdateId = firstUpdate?.updateId?.plus(1) ?: continue
         val message = firstUpdate.message?.text
         val chatId = firstUpdate.message?.chat?.id ?: firstUpdate.callbackQuery?.message?.chat?.id
         val data = firstUpdate.callbackQuery?.data
 
+
+
         if (message?.lowercase() == "hello") {
-            sendMessage(chatId, "Hello", httpClient)
+            sendMessage(json, chatId, "Hello", httpClient, botToken)
         }
 
         if (message?.lowercase() == "/start") {
-            sendMenu(chatId, httpClient)
+            sendMenu(json,chatId, httpClient, botToken)
         }
 
         if (data?.lowercase() == "statistic_clicked") {
             val statistic = trainer.getStatistic()
-            sendMessage(
+            sendMessage(json,
                 chatId,
                 "Выучено ${statistic.learned} из ${statistic.total} слов || ${statistic.percent}%",
-                httpClient
-
+                httpClient,
+                botToken
             )
         }
 
         if (data?.lowercase() == LEARN_WORD_BUTTON) {
-            checkNextQuestionAndSend(trainer, chatId, httpClient)
+            checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
         }
 
         if (startsWith(data)) {
             val index = data?.substringAfter("_")?.toInt()
             if (trainer.checkAnswer(index)) {
-                sendMessage(chatId, "Правильно", httpClient)
-                checkNextQuestionAndSend(trainer, chatId, httpClient)
+                sendMessage(json,chatId, "Правильно", httpClient, botToken)
+                checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
             } else {
-                sendMessage(
+                sendMessage(json,
                     chatId,
                     "Не правильно! Правильный ответ - ${
                         (trainer.getQuestion()?.correctAnswer?.translate)
                             ?.replaceFirstChar { it.uppercase() }
                     }",
-                    httpClient
+                    httpClient, botToken
                 )
-                checkNextQuestionAndSend(trainer, chatId, httpClient)
+                checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
             }
         }
     }
@@ -141,26 +148,29 @@ fun startsWith(data: String?): Boolean {
     return data?.contains(CALLBACK_DATA_ANSWER_PREFIX) ?: false
 }
 
-fun checkNextQuestionAndSend(trainer: LearnWordsTrainer, chatId: Long?, httpClient: TelegramBotService) {
+fun checkNextQuestionAndSend(trainer: LearnWordsTrainer, chatId: Long?, httpClient: TelegramBotService, json: Json, botToken: String) {
     val question = trainer.getNextQuestion()
     if (question == null) {
-        sendMessage(chatId, message = "Вы выучили все слова в базе!", httpClient)
+        sendMessage(json, chatId, message = "Вы выучили все слова в базе!", httpClient, botToken)
     } else {
-        sendQuestion(chatId, question, httpClient)
+        sendQuestion(json, chatId, question, httpClient, botToken)
     }
 }
 
-fun sendMessage(chatId: Long?, message: String, httpClient: TelegramBotService): String {
+fun sendMessage(json: Json, chatId: Long?, message: String, httpClient: TelegramBotService, botToken: String): String? {
+
     val encoded = URLEncoder.encode(message, StandardCharsets.UTF_8)
 
     val requestBody = SendMessageRequest(
         chatId = chatId,
         text = message
     )
-    return httpClient.sendClient(encoded, chatId, requestBody)
+    val requestBodyString = json.encodeToString(requestBody)
+    val sendQuestionUrl = "$BASE_URL$botToken/sendMessage?chat_id=$chatId&text=$encoded"
+    return httpClient.sendMessageClient(requestBodyString, sendQuestionUrl)
 }
 
-fun sendMenu(chatId: Long?, httpClient: TelegramBotService): String {
+fun sendMenu(json: Json, chatId: Long?, httpClient: TelegramBotService, botToken: String): String? {
 
     val requestBody = SendMessageRequest(
         chatId = chatId,
@@ -174,11 +184,12 @@ fun sendMenu(chatId: Long?, httpClient: TelegramBotService): String {
             )
         )
     )
-    return httpClient.sendMessageClient(requestBody)
+    val requestBodyString = json.encodeToString(requestBody)
+    val sendMenuUrl = "$BASE_URL$botToken/sendMessage"
+    return httpClient.sendMessageClient(requestBodyString,sendMenuUrl)
 }
 
-fun sendQuestion(chatId: Long?, question: Question, httpClient: TelegramBotService): String {
-
+fun sendQuestion(json: Json, chatId: Long?, question: Question, httpClient: TelegramBotService, botToken: String): String? {
     val requestBody = SendMessageRequest(
         chatId = chatId,
         text = question.correctAnswer.original,
@@ -191,5 +202,7 @@ fun sendQuestion(chatId: Long?, question: Question, httpClient: TelegramBotServi
             })
         )
     )
-    return httpClient.sendMessageClient(requestBody)
+    val requestBodyString = json.encodeToString(requestBody)
+    val sendQuestionUrl = "$BASE_URL$botToken/sendMessage"
+    return httpClient.sendMessageClient(requestBodyString, sendQuestionUrl)
 }

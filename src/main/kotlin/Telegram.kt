@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 const val LEARN_WORD_BUTTON = "learn_words_clicked"
 const val STATISTICS_BUTTON = "statistic_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
-const val BASE_URL =  "https://api.telegram.org/bot"
+const val BASE_URL = "https://api.telegram.org/bot"
 
 
 @Serializable
@@ -101,21 +101,16 @@ fun main(args: Array<String>) {
         val data = firstUpdate.callbackQuery?.data
 
 
-
-        if (message?.lowercase() == "hello") {
-            sendMessage(json, chatId, "Hello", httpClient, botToken)
-        }
-
         if (message?.lowercase() == "/start") {
-            sendMenu(json,chatId, httpClient, botToken)
+            httpClient.sendMenu(json, chatId, botToken)
         }
 
         if (data?.lowercase() == "statistic_clicked") {
             val statistic = trainer.getStatistic()
-            sendMessage(json,
+            httpClient.sendMessage(
+                json,
                 chatId,
                 "Выучено ${statistic.learned} из ${statistic.total} слов || ${statistic.percent}%",
-                httpClient,
                 botToken
             )
         }
@@ -127,16 +122,16 @@ fun main(args: Array<String>) {
         if (startsWith(data)) {
             val index = data?.substringAfter("_")?.toInt()
             if (trainer.checkAnswer(index)) {
-                sendMessage(json,chatId, "Правильно", httpClient, botToken)
+                httpClient.sendMessage(json, chatId, "Правильно", botToken)
                 checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
             } else {
-                sendMessage(json,
+                httpClient.sendMessage(json,
                     chatId,
                     "Не правильно! Правильный ответ - ${
                         (trainer.getQuestion()?.correctAnswer?.translate)
                             ?.replaceFirstChar { it.uppercase() }
                     }",
-                    httpClient, botToken
+                    botToken
                 )
                 checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
             }
@@ -148,61 +143,17 @@ fun startsWith(data: String?): Boolean {
     return data?.contains(CALLBACK_DATA_ANSWER_PREFIX) ?: false
 }
 
-fun checkNextQuestionAndSend(trainer: LearnWordsTrainer, chatId: Long?, httpClient: TelegramBotService, json: Json, botToken: String) {
+fun checkNextQuestionAndSend(
+    trainer: LearnWordsTrainer,
+    chatId: Long?,
+    httpClient: TelegramBotService,
+    json: Json,
+    botToken: String
+) {
     val question = trainer.getNextQuestion()
     if (question == null) {
-        sendMessage(json, chatId, message = "Вы выучили все слова в базе!", httpClient, botToken)
+        httpClient.sendMessage(json, chatId, message = "Вы выучили все слова в базе!", botToken)
     } else {
-        sendQuestion(json, chatId, question, httpClient, botToken)
+        httpClient.sendQuestion(json, chatId, question, botToken)
     }
-}
-
-fun sendMessage(json: Json, chatId: Long?, message: String, httpClient: TelegramBotService, botToken: String): String? {
-
-    val encoded = URLEncoder.encode(message, StandardCharsets.UTF_8)
-
-    val requestBody = SendMessageRequest(
-        chatId = chatId,
-        text = message
-    )
-    val requestBodyString = json.encodeToString(requestBody)
-    val sendQuestionUrl = "$BASE_URL$botToken/sendMessage?chat_id=$chatId&text=$encoded"
-    return httpClient.sendMessageClient(requestBodyString, sendQuestionUrl)
-}
-
-fun sendMenu(json: Json, chatId: Long?, httpClient: TelegramBotService, botToken: String): String? {
-
-    val requestBody = SendMessageRequest(
-        chatId = chatId,
-        text = "Основное меню",
-        replyMarkup = ReplyMarkup(
-            listOf(
-                listOf(
-                    InlineKeyboard(text = "Изучать слова", callbackData = LEARN_WORD_BUTTON),
-                    InlineKeyboard(text = "Показать статистику", callbackData = STATISTICS_BUTTON)
-                )
-            )
-        )
-    )
-    val requestBodyString = json.encodeToString(requestBody)
-    val sendMenuUrl = "$BASE_URL$botToken/sendMessage"
-    return httpClient.sendMessageClient(requestBodyString,sendMenuUrl)
-}
-
-fun sendQuestion(json: Json, chatId: Long?, question: Question, httpClient: TelegramBotService, botToken: String): String? {
-    val requestBody = SendMessageRequest(
-        chatId = chatId,
-        text = question.correctAnswer.original,
-        replyMarkup = ReplyMarkup(
-            listOf(question.variant.mapIndexed { index, word ->
-                InlineKeyboard(
-                    text = word.translate,
-                    callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index"
-                )
-            })
-        )
-    )
-    val requestBodyString = json.encodeToString(requestBody)
-    val sendQuestionUrl = "$BASE_URL$botToken/sendMessage"
-    return httpClient.sendMessageClient(requestBodyString, sendQuestionUrl)
 }

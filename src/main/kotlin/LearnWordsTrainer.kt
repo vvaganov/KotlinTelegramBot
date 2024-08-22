@@ -21,6 +21,7 @@ data class Question(
 )
 
 class LearnWordsTrainer(
+    private val fileName: String = "words.txt",
     private val learnedAnswerCount: Int = 3,
     private val countOfQuestionWord: Int = 4
 ) {
@@ -66,22 +67,34 @@ class LearnWordsTrainer(
     }
 
     private fun loadDictionary(): List<Word> {
-        val wordFile = File("words.txt")
-        return wordFile.readLines().mapNotNull {
-            val split = it.split("|")
-            if (split.size != 3) {
-                null
-            } else {
-                Word(split[0], split[1], split[2].toIntOrNull() ?: 0)
+        try {
+            val wordFile = File(fileName)
+            if (!wordFile.exists()) {
+                File("words.txt").copyTo(wordFile)
             }
+            return wordFile.readLines().mapNotNull {
+                val split = it.split("|")
+                if (split.size != 3) {
+                    null
+                } else {
+                    Word(split[0], split[1], split[2].toIntOrNull() ?: 0)
+                }
+            }
+        } catch (e: IndexOutOfBoundsException) {
+            throw IllegalStateException("не корректный файл")
         }
     }
 
     private fun saveDictionary() {
-        val wordFile = File("words.txt")
+        val wordFile = File(fileName)
         wordFile.writeText("")
         for (word in dictionary) {
             wordFile.appendText("${word.original}|${word.translate}|${word.correctAnswersCount}\n")
         }
+    }
+
+    fun resetProgress() {
+        dictionary.forEach { it.correctAnswersCount = 0 }
+        saveDictionary()
     }
 }

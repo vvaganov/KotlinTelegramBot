@@ -1,19 +1,13 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.net.URI
-import java.net.URLEncoder
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.nio.charset.StandardCharsets
-
 
 const val LEARN_WORD_BUTTON = "learn_words_clicked"
 const val STATISTICS_BUTTON = "statistic_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
+const val RESET_CLICKED = "reset_clicked"
 const val BASE_URL = "https://api.telegram.org/bot"
+const val START = "/start"
 
 
 @Serializable
@@ -85,6 +79,7 @@ fun main(args: Array<String>) {
 
     val trainer = LearnWordsTrainer()
     val httpClient = TelegramBotService(botToken)
+    val trainers = HashMap<Long, LearnWordsTrainer>()
 
     val json = Json {
         ignoreUnknownKeys = true
@@ -94,48 +89,70 @@ fun main(args: Array<String>) {
         Thread.sleep(2000)
         val getUpdateUrl = "$BASE_URL$botToken/getUpdates?offset=$lastUpdateId"
         val responseString = httpClient.getClient(getUpdateUrl)
-        val firstUpdate = httpClient.getUpdateDataClass(responseString, json)
-        lastUpdateId = firstUpdate?.updateId?.plus(1) ?: continue
-        val message = firstUpdate.message?.text
-        val chatId = firstUpdate.message?.chat?.id ?: firstUpdate.callbackQuery?.message?.chat?.id
-        val data = firstUpdate.callbackQuery?.data
+        val response: Response = json.decodeFromString(responseString)
+        if (response.result.isEmpty()) continue
+        val sortedUpdates = response.result.sortedBy { it.updateId }
+        sortedUpdates.forEach { handleUpdate(it, json, httpClient, trainers, botToken) }
+        lastUpdateId = sortedUpdates.last().updateId + 1
+
+    }
+}
 
 
-        if (message?.lowercase() == "/start") {
-            httpClient.sendMenu(json, chatId, botToken)
-        }
 
-        if (data?.lowercase() == "statistic_clicked") {
-            val statistic = trainer.getStatistic()
-            httpClient.sendMessage(
-                json,
+
+fun handleUpdate(
+    update: Update,
+    json: Json,
+    httpClient: TelegramBotService,
+    trainers: HashMap<Long, LearnWordsTrainer>,
+    botToken: String,
+
+    ) {
+    val message = update.message?.text
+    val chatId = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
+    val data = update.callbackQuery?.data
+    val trainer = trainers.getOrPut(chatId) { LearnWordsTrainer("$chatId.txt") }
+
+    if (message?.lowercase() == START) {
+        httpClient.sendMenu(json, chatId, botToken)
+    }
+
+    if (data?.lowercase() == STATISTICS_BUTTON) {
+        val statistic = trainer.getStatistic()
+        httpClient.sendMessage(
+            json,
+            chatId,
+            "Выучено ${statistic.learned} из ${statistic.total} слов || ${statistic.percent}%",
+            botToken
+        )
+    }
+
+    if (data?.lowercase() == LEARN_WORD_BUTTON) {
+        checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
+    }
+
+    if (startsWith(data)) {
+        val index = data?.substringAfter("_")?.toInt()
+        if (trainer.checkAnswer(index)) {
+            httpClient.sendMessage(json, chatId, "Правильно", botToken)
+            checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
+        } else {
+            httpClient.sendMessage(json,
                 chatId,
-                "Выучено ${statistic.learned} из ${statistic.total} слов || ${statistic.percent}%",
+                "Не правильно! Правильный ответ - ${
+                    (trainer.getQuestion()?.correctAnswer?.translate)
+                        ?.replaceFirstChar { it.uppercase() }
+                }",
                 botToken
             )
-        }
-
-        if (data?.lowercase() == LEARN_WORD_BUTTON) {
             checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
         }
+    }
 
-        if (startsWith(data)) {
-            val index = data?.substringAfter("_")?.toInt()
-            if (trainer.checkAnswer(index)) {
-                httpClient.sendMessage(json, chatId, "Правильно", botToken)
-                checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
-            } else {
-                httpClient.sendMessage(json,
-                    chatId,
-                    "Не правильно! Правильный ответ - ${
-                        (trainer.getQuestion()?.correctAnswer?.translate)
-                            ?.replaceFirstChar { it.uppercase() }
-                    }",
-                    botToken
-                )
-                checkNextQuestionAndSend(trainer, chatId, httpClient, json, botToken)
-            }
-        }
+    if (data == RESET_CLICKED) {
+        trainer.resetProgress()
+        httpClient.sendMessage(json, chatId, message = "Прогресс сброшен", botToken)
     }
 }
 

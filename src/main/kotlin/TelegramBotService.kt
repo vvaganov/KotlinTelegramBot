@@ -8,25 +8,19 @@ import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
 
+
 open class TelegramBotService(
     private val botToken: String
 ) {
 
     private val client: HttpClient = HttpClient.newBuilder().build()
 
-
-    fun getUpdateDataClass(responseString: String, json: Json): Update? {
-        val response = json.decodeFromString<Response>(responseString)
-        val update = response.result
-        val firstUpdate = update.firstOrNull()
-        return firstUpdate
-    }
-
-    fun getClient(url:String): String {
+    fun getClient(url: String): String {
         val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(url)).build()
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
     }
+
     fun sendMessage(json: Json, chatId: Long?, message: String, botToken: String): String? {
 
         val encoded = URLEncoder.encode(message, StandardCharsets.UTF_8)
@@ -48,6 +42,7 @@ open class TelegramBotService(
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
     }
+
     fun sendMenu(json: Json, chatId: Long?, botToken: String): String? {
 
         val requestBody = SendMessageRequest(
@@ -58,13 +53,14 @@ open class TelegramBotService(
                     listOf(
                         InlineKeyboard(text = "Изучать слова", callbackData = LEARN_WORD_BUTTON),
                         InlineKeyboard(text = "Показать статистику", callbackData = STATISTICS_BUTTON)
-                    )
+                    ),
+                    listOf(InlineKeyboard(text = "Сбросить статистику", callbackData = RESET_CLICKED))
                 )
             )
         )
         val requestBodyString = json.encodeToString(requestBody)
         val sendMenuUrl = "$BASE_URL$botToken/sendMessage"
-        return sendMessageClient(requestBodyString,sendMenuUrl)
+        return sendMessageClient(requestBodyString, sendMenuUrl)
     }
 
     fun sendQuestion(json: Json, chatId: Long?, question: Question, botToken: String): String? {

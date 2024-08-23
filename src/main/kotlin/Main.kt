@@ -12,7 +12,7 @@ fun main() {
 
     val trainer =
         try {
-            LearnWordsTrainer(3, 4)
+            LearnWordsTrainer(learnedAnswerCount = 3, countOfQuestionWord = 4)
         } catch (e: Exception) {
             println("Не возможно загрузить словарь")
             return

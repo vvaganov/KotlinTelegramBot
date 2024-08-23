@@ -1,6 +1,5 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 const val LEARN_WORD_BUTTON = "learn_words_clicked"
@@ -8,6 +7,7 @@ const val STATISTICS_BUTTON = "statistic_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
 const val RESET_CLICKED = "reset_clicked"
 const val BASE_URL = "https://api.telegram.org/bot"
+const val START = "/start"
 
 
 @Serializable
@@ -98,6 +98,9 @@ fun main(args: Array<String>) {
     }
 }
 
+
+
+
 fun handleUpdate(
     update: Update,
     json: Json,
@@ -111,11 +114,11 @@ fun handleUpdate(
     val data = update.callbackQuery?.data
     val trainer = trainers.getOrPut(chatId) { LearnWordsTrainer("$chatId.txt") }
 
-    if (message?.lowercase() == "/start") {
+    if (message?.lowercase() == START) {
         httpClient.sendMenu(json, chatId, botToken)
     }
 
-    if (data?.lowercase() == "statistic_clicked") {
+    if (data?.lowercase() == STATISTICS_BUTTON) {
         val statistic = trainer.getStatistic()
         httpClient.sendMessage(
             json,
